@@ -60,6 +60,9 @@ const uint8_t SD_CS_PIN = 10;
 // The led blinks for fatal errors. The led goes on solid for SD write
 // overrun errors and logging continues.
 const int8_t ERROR_LED_PIN = 5;
+
+// Start/stop button pin
+const int8_t BTN_PIN = 8;
 //------------------------------------------------------------------------------
 // File definitions.
 //
@@ -165,6 +168,9 @@ void errorFlash(const __FlashStringHelper *msg)
   sd.errorPrint(msg);
   fatalBlink();
 }
+
+int buttonState = 0;     // current state of the button
+int lastButtonState = 0; // previous state of the button
 
 //------------------------------------------------------------------------------
 // log data
@@ -285,9 +291,17 @@ void logData()
   {
     // Time for next data record.
     logTime += LOG_INTERVAL_USEC;
-    if (Serial.available())
+
+    buttonState = digitalRead(BTN_PIN);
+
+    if (buttonState != lastButtonState)
     {
-      closeFile = true;
+      lastButtonState = buttonState;
+
+      if (buttonState == LOW)
+      {
+        closeFile = true;
+      }
     }
 
     if (closeFile)
@@ -419,10 +433,11 @@ void setup(void)
   {
     pinMode(ERROR_LED_PIN, OUTPUT);
   }
+
+  pinMode(BTN_PIN, INPUT);
+  digitalWrite(BTN_PIN, HIGH);
+
   Serial.begin(9600);
-  while (!Serial)
-  {
-  }
 
   Serial.print(F("Records/block: "));
   Serial.println(DATA_DIM);
@@ -430,12 +445,19 @@ void setup(void)
   {
     error("Invalid block size");
   }
-  uint8_t range = 3;
   setupData();
   Serial.println("Initializing gyro...");
   mpu.initialize();
   Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
-  mpu.setFullScaleGyroRange(range);
+  mpu.setFullScaleGyroRange(3);
+
+  // TODO: make autocalibration routine to store values in EEPROM
+  mpu.setXAccelOffset(319);
+  mpu.setYAccelOffset(48);
+  mpu.setZAccelOffset(1142);
+  mpu.setXGyroOffset(-18);
+  mpu.setYGyroOffset(63);
+  mpu.setZGyroOffset(-24);
 
   // initialize file system.
   if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED))
@@ -447,35 +469,16 @@ void setup(void)
 //------------------------------------------------------------------------------
 void loop(void)
 {
-  // discard any input
-  while (Serial.read() >= 0)
-  {
-  }
-  Serial.println();
-  Serial.println(F("type:"));
-  Serial.println(F("r - record data"));
+  buttonState = digitalRead(BTN_PIN);
 
-  while (!Serial.available())
+  if (buttonState != lastButtonState)
   {
-  }
-  char c = tolower(Serial.read());
+    lastButtonState = buttonState;
 
-  // Discard extra Serial data.
-  do
-  {
-    delay(10);
-  } while (Serial.read() >= 0);
-
-  if (ERROR_LED_PIN >= 0)
-  {
-    digitalWrite(ERROR_LED_PIN, LOW);
-  }
-  if (c == 'r')
-  {
-    logData();
-  }
-  else
-  {
-    Serial.println(F("Invalid entry"));
+    if (buttonState == LOW)
+    {
+      Serial.println('Starting log...');
+      logData();
+    }
   }
 }
