@@ -218,8 +218,7 @@ void logData()
   // Create new file.
   Serial.println(F("Creating new file"));
   binFile.close();
-  if (!binFile.createContiguous(sd.vwd(),
-                                TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT))
+  if (!binFile.createContiguous(TMP_FILE_NAME, 512 * FILE_BLOCK_COUNT))
   {
     error("createContiguous failed");
   }
@@ -408,7 +407,7 @@ void logData()
       error("Can't truncate file");
     }
   }
-  if (!binFile.rename(sd.vwd(), binName))
+  if (!binFile.rename(binName))
   {
     error("Can't rename file");
   }
