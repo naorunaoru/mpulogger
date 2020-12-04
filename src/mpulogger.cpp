@@ -19,7 +19,6 @@
 #include "Wire.h"
 #include "I2Cdev.h"
 #include "MPU6050.h"
-#include "Ticker.h"
 
 //------------------------------------------------------------------------------
 // User data functions.  Modify these functions for your data items.
