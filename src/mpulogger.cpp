@@ -19,6 +19,8 @@
 #include "Wire.h"
 #include "I2Cdev.h"
 #include "MPU6050.h"
+#include "Ticker.h"
+
 //------------------------------------------------------------------------------
 // User data functions.  Modify these functions for your data items.
 #include "UserDataType.h" // Edit this include file to change data_t.
@@ -426,6 +428,8 @@ void logData()
   Serial.println(F("Done"));
 }
 //------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
 void setup(void)
 {
   if (ERROR_LED_PIN >= 0)
@@ -453,22 +457,26 @@ void setup(void)
   mpu.setXAccelOffset(319);
   mpu.setYAccelOffset(48);
   mpu.setZAccelOffset(1142);
-  mpu.setXGyroOffset(-18);
-  mpu.setYGyroOffset(63);
-  mpu.setZGyroOffset(-24);
-
-  // initialize file system.
+  digitalWrite(ERROR_LED_PIN, HIGH);
+  mpu.CalibrateGyro(50);
+  digitalWrite(ERROR_LED_PIN, LOW);
+  Serial.print("Offset X: ");
+  Serial.println(mpu.getXGyroOffset());
+  Serial.print("Offset Y: ");
+  Serial.println(mpu.getYGyroOffset());
+  Serial.print("Offset Z: ");
+  Serial.println(mpu.getZGyroOffset());
+   // initialize file system.
   if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED))
   {
     sd.initErrorPrint();
-    fatalBlink();
+    //fatalBlink();
   }
 }
 //------------------------------------------------------------------------------
 void loop(void)
 {
-  buttonState = digitalRead(BTN_PIN);
-
+  //buttonState = digitalRead(BTN_PIN);
   if (buttonState != lastButtonState)
   {
     lastButtonState = buttonState;
