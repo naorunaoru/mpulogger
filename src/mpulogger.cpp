@@ -62,7 +62,7 @@ const uint8_t SD_CS_PIN = 10;
 const int8_t ERROR_LED_PIN = 5;
 
 // Start/stop button pin
-const int8_t BTN_PIN = 8;
+const int8_t BTN_PIN = 3;
 //------------------------------------------------------------------------------
 // File definitions.
 //
@@ -434,9 +434,7 @@ void setup(void)
   }
 
   pinMode(BTN_PIN, INPUT);
-  digitalWrite(BTN_PIN, HIGH);
-
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   Serial.print(F("Records/block: "));
   Serial.println(DATA_DIM);
@@ -448,8 +446,9 @@ void setup(void)
   Serial.println("Initializing gyro...");
   mpu.initialize();
   Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
-  mpu.setFullScaleGyroRange(3);
-
+  mpu.setFullScaleGyroRange(MPU6050_GYRO_FS_2000);
+  Serial.print(F("Gyro scale: "));
+  Serial.println(mpu.getFullScaleGyroRange());
   // TODO: make autocalibration routine to store values in EEPROM
   mpu.setXAccelOffset(319);
   mpu.setYAccelOffset(48);
@@ -476,7 +475,7 @@ void loop(void)
 
     if (buttonState == LOW)
     {
-      Serial.println('Starting log...');
+      Serial.println(F("Starting log..."));
       logData();
     }
   }
