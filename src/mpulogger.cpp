@@ -470,13 +470,13 @@ void setup(void)
   if (!sd.begin(SD_CS_PIN, SPI_FULL_SPEED))
   {
     sd.initErrorPrint();
-    //fatalBlink();
+    fatalBlink();
   }
 }
 //------------------------------------------------------------------------------
 void loop(void)
 {
-  //buttonState = digitalRead(BTN_PIN);
+  buttonState = digitalRead(BTN_PIN);
   if (buttonState != lastButtonState)
   {
     lastButtonState = buttonState;
